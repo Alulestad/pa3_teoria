@@ -6,6 +6,21 @@ import java.util.function.Function;
 public class Main {
     public static void main(String[] args) {
 
+        System.out.println("asdfsadfdsf");
+
+
+
+
+
+
+
+    }
+
+
+
+
+/////////////////////////////////////////////////////////////////////////
+    public static void ejerciciosIniciales(){
         System.out.println("Ejemplo 1++++++++++++++++");
 
 
@@ -52,7 +67,6 @@ public class Main {
             System.out.println("forma 3:"+ret3.get());
         else
             System.out.println("No existe la divicion ");
-
 
 
 
