@@ -10,34 +10,35 @@ import java.util.function.Function;
  * @param <T>
  */
 public interface Lista <T> {
-
+    //######Variables de clase, finales y static######
     Lista Empty=new Empty();
 
-
-
+    //######Metodos abstractos######
     T head();
     Lista<T> tail();
-
     boolean isEmpty();
 
-    static <T> Lista<T> of(T head, Lista<T> tail){
+    //######of con cabecera y cola (lista=Const=Nodo)######
+    private static <T> Lista<T> of(T head, Lista<T> tail){
         return new Const<>(head,tail);
     }
 
+    //######of con parametros variables######
     static <T> Lista<T> of(T... elems){
         var tmp=Lista.Empty;
+
         for(int i=elems.length-1;i>=0;i--){
             tmp= new Const(elems[i],tmp);
-
         }
 
         return tmp;
     }
 
+    //##################count##################
     default int count2(){
-
         var tmp = this;
         int cc=0;
+
         while (!tmp.isEmpty()){
             cc++;
             tmp= tmp.tail();
@@ -47,11 +48,10 @@ public interface Lista <T> {
     }
 
     default int count(){
-
         return 1 + tail().count();
     }
 
-
+    //##################prepend##################
     default Lista<T> prepend(T elemn){
         return new Const<>(elemn, this);
     }
@@ -60,8 +60,8 @@ public interface Lista <T> {
         return Lista.of(elemn, this);
     }
 
+    //##################append##################
     default Lista<T> append(T elemn){
-
         if(this.isEmpty()){
             return new Const<>(elemn,Lista.Empty);
 
@@ -71,7 +71,6 @@ public interface Lista <T> {
                 this.tail().append(elemn)
             );
         }
-
 
     }
 
@@ -101,6 +100,7 @@ public interface Lista <T> {
 
     }
 
+    //##################insert##################
     default Lista<T> insert(int index, T elem){
         if(index==0){
             return new Const<>(elem,this);
@@ -131,6 +131,7 @@ public interface Lista <T> {
         );
     }
 
+    //##################insert##################
     default T get(int index){
 
         if(index==0 ){
@@ -139,6 +140,7 @@ public interface Lista <T> {
         }else{
             return this.tail().get(index-1);
         }
+
     }
 
     default T getX(int index){
@@ -147,6 +149,7 @@ public interface Lista <T> {
                :this.tail().get(index-1);
     }
 
+    //##################take##################
     default Lista<T> take(int n){
         if(n<=0 || this.isEmpty()){
             return Lista.Empty;
@@ -163,7 +166,7 @@ public interface Lista <T> {
 
     }
 
-
+    //##################drop##################
     default Lista<T> drop(int n) {
 
         if (n <= 0 || this.isEmpty()) {
@@ -182,6 +185,7 @@ public interface Lista <T> {
 
     }
 
+    //##################concat##################
     default Lista<T> concat(Lista<T> ls) {
         if(this.isEmpty()){
             return ls;
@@ -198,6 +202,7 @@ public interface Lista <T> {
 
     }
 
+    //##################map##################
     default <U> Lista <U> map(Function<T,U> fn ){
         if(isEmpty()){
             return Lista.Empty;
@@ -206,11 +211,11 @@ public interface Lista <T> {
         }
     }
 
-
+    //##################foldLeft##################
     default <U> U foldLeft(U identity, Function<U,Function<T,U>> fn){
         U ret = identity;
-
         var tmp=this;
+
         while(!tmp.isEmpty()){
             ret =fn.apply(ret).apply(tmp.head());
             tmp=tmp.tail();
@@ -219,67 +224,76 @@ public interface Lista <T> {
         return ret;
     }
 
+    //##################foldRight##################
     default <U> U foldRight(U identity, Function<T,Function<U,U>> fn){
         return this.isEmpty()
                 ?identity
                 :fn.apply(this.head()).apply(this.tail().foldRight(identity,fn));
     }
 
+    //##################invertFoldLeft##################
     default Lista<T> invertFold(){
         return foldLeft(Lista.Empty,ls->t->ls.prepend(t));
 
     }
 
+    //##################mapFoldLeft##################
     default <U> Lista<U> mapFoldLeft(Function<T,U> fn){
         return foldLeft(Lista.Empty,ls->t->ls.append(fn.apply(t)));
                                     //ls la lista,t el elemento.
     }
 
+    //##################mapFoldRight##################
     default <U> Lista<U> mapFoldRight(Function<T,U> fn){
         return foldRight(Lista.Empty, t-> ls->ls.prepend(fn.apply(t)));
 
     }
 
+    //##################countFoldLeft##################
     default Integer countFoldLeft(){
         //en este caso da igual left o rigth pues las suma es conmutativa
         return foldLeft(0,n->t->n+1);
     }
 
+    //##################appendFoldRight##################
     default Lista<T> appendFoldRight(T elem){
         return foldRight(Lista.of(elem), t-> ls->ls.prepend(t));
     }
 
+    //##################prependFoldRight##################
+    default Lista<T> prependFoldLeft(T elem){
+        return foldLeft(Lista.of(elem), ls-> t->ls.append(t));
+    }
+
+    //##################reduceFoldLeft##################
     default T reduceFoldLeft(T identity,Function<T,Function<T,T>> fn){
         return foldLeft(identity,u->t->fn.apply(u).apply(t));
 
     }
 
+    //##################reduceFoldLeftSimplificado##################
     default T reduceFoldLeftSimplificado(Function<T,Function<T,T>> fn){
         return this.tail().foldLeft(this.head(),u->t->fn.apply(u).apply(t));
+    }//resulta que "this.head()" es mi identidad, por ello como que me salto
+    //el primer "nodo/const" porque ya lo mando directo como parametro.
 
-    }
-
+    //##################takeFoldLeft##################
     default Lista<T> takeFoldLeft(int n ){
         return foldLeft(Lista.Empty,
-                ls->t->ls.count()<n?ls.append(t):ls
-
-
-                /*
-                ls->t->{
-                    if(ls.count()<n){
-                        return ls.append(t);
-                    }else{
-                       return ls;
-                    }
-                }*/
-        );
+                ls->t->ls.count()<n
+                        ?ls.append(t)
+                        :ls
+                );
     }
 
+    //##################dropFoldRight##################
     default Lista<T> dropFoldRight(int n){
         int tot=this.count()-n;
         return foldRight(
                 Lista.Empty,
-                t->ls->ls.count()<tot?ls.prepend(t):ls
+                t->ls->ls.count()<tot
+                        ?ls.prepend(t)
+                        :ls
         );
 
     }

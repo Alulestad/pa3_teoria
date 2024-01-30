@@ -2,7 +2,7 @@ package com.programacion.avanzada.lista;
 
 import java.util.List;
 
-class Empty implements Lista {
+class Empty implements Lista{
 
 
     @Override
