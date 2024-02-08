@@ -2,6 +2,7 @@ package com.programacion.avanzada.lista;
 
 import java.util.List;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 /**
  * {1,2,3,4}
@@ -298,6 +299,62 @@ public interface Lista <T> {
 
     }
 
+    static Lista<Integer> rangeRec(Integer start, Integer end){
+        if(start<end){
+            return Lista.of(start, rangeRec(start+1,end));
+        }
 
+        return Lista.Empty;
+    }
+
+
+
+//#########################################################################################################
+//*********************************************************************************************************
+//*********************************************DEBER*******************************************************
+//*********************************************************************************************************
+//#########################################################################################################
+
+    static Lista<Integer> rangeTailRec(Integer start, Integer end, Lista<Integer> acc) {
+        if (start < end) {
+            return rangeTailRec(start, end - 1, acc.prepend(end - 1));
+        } else {
+            return acc;
+        }
+    }
+    static <T> Lista<T> unfoldImperativo(T start, Function<T, T> f, Predicate<T> p) {
+        Lista listaR=Lista.of(start);
+        var value=f.apply(start);
+        while(p.test(value)){
+            listaR= listaR.prepend(value);
+
+            value=f.apply(value);
+        }
+        return listaR.invertFold();
+    }
+    static <T> Lista<T> unfoldRecursivo(T start, Function<T, T> f, Predicate<T> p) {
+        if(p.test(start)){
+            return Lista.of(start,unfoldRecursivo(f.apply(start),f,p));
+        }
+        return Lista.Empty;
+    }
+
+    static <T> Lista<T> unfoldTailRecursivo(T start, Function<T, T> f, Predicate<T> p,Lista<T> acc) {
+
+        if(p.test(start)){
+            return unfoldTailRecursivo(f.apply(start),f,p,acc.prepend(start));
+        }
+        return acc.invertFold();
+    }
+
+    static Lista<Integer> rangeUnfold(Integer start, Integer end) {
+
+        return Lista.unfoldTailRecursivo(start, x->x+1, x->x.compareTo(end)<0,Lista.Empty);
+
+    }
 
 }
+
+
+
+

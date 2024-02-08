@@ -8,6 +8,7 @@
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
+            <option value="$PROJECT_DIR$/Recursion" />
             <option value="$PROJECT_DIR$/curring" />
             <option value="$PROJECT_DIR$/ejemplo01" />
             <option value="$PROJECT_DIR$/ejemplo2" />
