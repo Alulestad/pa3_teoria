@@ -1,8 +1,9 @@
 package com.pa3.dll.recursion.lista;
 
 import com.pa3.dll.recursion.TailCall;
+import com.pa3.dll.recursion.repaso.Nodo;
+import com.pa3.dll.recursion.repaso.Tuple;
 
-import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -407,9 +408,12 @@ public interface ListaTC<T> {
 
     //##################   foldRight   ##################
     default <U> U foldRight(U identity, Function<T,Function<U,U>> fn){
-        return this.isEmpty()
-                ?identity
-                :fn.apply(this.head()).apply(this.tail().foldRight(identity,fn));
+        if(this.isEmpty()){
+            return identity;
+        }else{
+            return fn.apply(this.head()).apply(this.tail().foldRight(identity,fn));
+        }
+
     }
 
     //##################   invert   ##################
@@ -573,6 +577,91 @@ public interface ListaTC<T> {
         return ListaTC.unfoldTailRecursivo(start, x->x+1, x->x.compareTo(end)<0, ListaTC.Empty);
 
     }
+
+    /////////////////////////////////////////////////////////////////////////////////
+
+    private static ListaTC<Tuple> tuplasSucesorasTRAux(ListaTC<Tuple> listaTuplas, ListaTC<Tuple> acum , Nodo nodo){
+
+        if(listaTuplas.isEmpty()){
+            return ListaTC.invertirTR(acum);
+        }else{
+            return tuplasSucesorasTRAux(listaTuplas.tail(), listaTuplas.head().contains(nodo)? ListaTC.preppendTR(listaTuplas.head(),acum): acum,nodo);
+        }
+
+    }
+
+    private static ListaTC<Tuple> tuplasSucesorasTR(ListaTC<Tuple> listaTupla ,Nodo nodo){
+
+        return tuplasSucesorasTRAux(listaTupla,ListaTC.Empty,nodo);
+
+    }
+
+    private static ListaTC<Nodo> sucesoresTRAux(ListaTC<Tuple> listaTuplasSucesoras,ListaTC<Nodo> listaNodos){
+
+        if(listaTuplasSucesoras.isEmpty()){
+            return ListaTC.invertirTR(listaNodos);
+        }else{
+            return sucesoresTRAux(listaTuplasSucesoras.tail(),ListaTC.preppendTR(listaTuplasSucesoras.head().arg2(),listaNodos));
+        }
+
+    }
+
+    private static ListaTC<Nodo> sucesoresTR(ListaTC<Tuple> listaTuplasSucesoras){
+        return sucesoresTRAux(listaTuplasSucesoras,ListaTC.Empty);
+    }
+
+    public static ListaTC<Nodo> nodosSucesores(ListaTC<Tuple> listaTuplasOriginal,Nodo nodo){
+        return sucesoresTR(tuplasSucesorasTR(listaTuplasOriginal,nodo));
+    }
+
+    /////////////////////////////////////////////////////////////////////////////////folding
+    default ListaTC<Tuple> tuplasSucesorasFolding(Nodo nodo){
+        return foldLeft(ListaTC.Empty,ls->tp-> ((Tuple)tp).contains(nodo)?ls.append(tp):ls    );
+    }
+
+    default ListaTC<Nodo> nodosSucesores(Nodo nodo){
+        ListaTC<Tuple> tuplasSucesorasFolding=tuplasSucesorasFolding(nodo);
+        return tuplasSucesorasFolding.foldLeft(ListaTC.Empty,ls->nd-> ls.append(nd.arg2())    );
+    }
+
+    ////////////////////////Monedas
+    public static ListaTC<Integer> descomposicionMonedasAux(ListaTC<Integer> listaMonedas,ListaTC<Integer> acumulador, Integer dinero){
+        if(dinero.intValue()<=0){
+            return acumulador.invertFold();
+        }else if(dinero.intValue()>=listaMonedas.head()){
+                return descomposicionMonedasAux(listaMonedas,acumulador.prepend(listaMonedas.head()),dinero-listaMonedas.head());
+        }else{
+                return descomposicionMonedasAux(listaMonedas.tail(),acumulador,dinero);
+        }
+
+    }
+    public static ListaTC<Integer> descomposicionMonedas(ListaTC<Integer> listaMonedas, Integer dinero){
+        return descomposicionMonedasAux(listaMonedas,ListaTC.Empty,dinero);
+    }
+
+    ////////////////////////Eliminacion de elementos
+    public static <T> ListaTC<T> eliminacionNAux(ListaTC<T> lista,ListaTC<T> acumulador,Predicate<T> predicado, Integer n){
+        if(n<=0){
+            return concatTC(invertirTC(acumulador),lista);
+        }else{
+            return eliminacionNAux(lista.tail(),predicado.test(lista.head())?acumulador:acumulador.prepend(lista.head()),predicado, n-1);
+        }
+
+    }
+
+    public static <T> TailCall<ListaTC<T>> eliminacionNAux_TC(ListaTC<T> lista,ListaTC<T> acumulador,Predicate<T> predicado, Integer n){
+        if(n<=0){
+            return TailCall.tailReturn(concatTC(invertirTC(acumulador),lista));
+        }else{
+            Supplier<TailCall<ListaTC<T>>> ret=()-> eliminacionNAux_TC(lista.tail(),predicado.test(lista.head())?acumulador:acumulador.prepend(lista.head()),predicado, n-1);
+            return TailCall.tailSuspend(ret);
+        }
+    }
+
+    public static <T> ListaTC<T> eliminacionN_TC(ListaTC<T> lista,Predicate<T> predicado, Integer n){
+        return eliminacionNAux_TC(lista,ListaTC.of(),predicado,n).eval();
+    }
+
 
 }
 
