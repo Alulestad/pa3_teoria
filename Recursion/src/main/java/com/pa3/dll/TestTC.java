@@ -3,10 +3,7 @@ package com.pa3.dll;
 import com.pa3.dll.recursion.TailCall;
 import com.pa3.dll.recursion.lista.ListaTC;
 
-import static com.pa3.dll.recursion.TailCall.tailReturn;
-import static com.pa3.dll.recursion.TailCall.tailSuspend;
-
-public class mainDeber {
+public class TestTC {
 
     public static void main(String[] args) {
 
