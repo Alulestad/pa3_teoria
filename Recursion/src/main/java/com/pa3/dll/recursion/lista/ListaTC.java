@@ -392,7 +392,6 @@ public interface ListaTC<T> {
 
 
 
-
     //##################   foldLeft   ##################
     default <U> U foldLeft(U identity, Function<U,Function<T,U>> fn){
         U ret = identity;
